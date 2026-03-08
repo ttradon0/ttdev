@@ -2,130 +2,125 @@
 
 ## 1. Create Infisical Account
 
-1. Go to https://infisical.com
-2. Click **"Get Started"** or **"Sign Up"**
-3. Create your account (free tier available)
+1. Go to https://app.infisical.com
+2. Click **"Sign Up"** (free forever plan)
+3. Create your account
 
 ## 2. Create a Project
 
-1. Log in to https://app.infisical.com
-2. Click **"Create Project"**
-3. Name: `ttdev`
-4. Choose your region
-5. Click **"Create"**
+1. After login, click **"Create Project"**
+2. Name: `ttdev`
+3. Choose region (select closest to you)
+4. Click **"Create"**
 
 ## 3. Add Secrets
 
 In your Infisical project dashboard:
 
-1. Click **"Add Secret"**
-2. Add these secrets:
+1. Make sure you're in the **`dev`** environment (top left dropdown)
+2. Click **"+ Add Secret"**
+3. Add these secrets one by one:
 
-| Secret Key | Value |
-|------------|-------|
-| `DATABASE_URL` | `postgresql://postgres.usgzpcvapikcyunazjkj:9o5sE19aODXJhndR@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres` |
-| `SUPABASE_URL` | `https://usgzpcvapikcyunazjkj.supabase.co` |
-| `SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (your key) |
+| Secret Key | Secret Value |
+|------------|--------------|
+| `DATABASE_URL` | `postgresql://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres` |
+| `SUPABASE_URL` | `https://YOUR_PROJECT_REF.supabase.co` |
+| `SUPABASE_ANON_KEY` | `your-supabase-anon-key` |
 | `NEXTAUTH_URL` | `http://localhost:3000` |
-| `NEXTAUTH_SECRET` | `dqRNfkACFiCNN1UM+wSgO3rzCQ/OPuSkHOiG9lR5Hgw=` |
-| `GOOGLE_CLIENT_ID` | `660539795758-9qhkuqg1fr82dat76q3jnp46gj1u3oti...` |
-| `GOOGLE_CLIENT_SECRET` | `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` |
-| `GITHUB_CLIENT_ID` | `Ov23lihkw9TcRkqi9Kes` |
-| `GITHUB_CLIENT_SECRET` | `e65225d2c256e0f873b09ff53f04feb1d77fa450` |
+| `NEXTAUTH_SECRET` | `your-nextauth-secret` |
+| `GOOGLE_CLIENT_ID` | `your-google-client-id` |
+| `GOOGLE_CLIENT_SECRET` | `your-google-client-secret` |
+| `GITHUB_CLIENT_ID` | `your-github-client-id` |
+| `GITHUB_CLIENT_SECRET` | `your-github-client-secret` |
 
-3. Click **"Save"**
+4. Click **"Save Changes"** after each secret
 
-## 4. Get Your Infisical Token
+## 4. Create Service Token
 
-### Option A: Machine Identity (Recommended for Production)
-
-1. Go to **Settings** → **Machine Identities**
-2. Click **"Create Machine Identity"**
-3. Name: `ttdev-app`
-4. Assign to your project
-5. Copy the **Service Token**
-
-### Option B: Service Token (Quick Setup)
-
-1. Go to your project
-2. Click **"Service Tokens"** in left sidebar
+1. In your Infisical project, go to **Settings** (left sidebar)
+2. Click **"Service Tokens"** tab
 3. Click **"Create Service Token"**
-4. Select:
-   - Environment: `dev` (or create one)
-   - Permissions: `Read`
-5. Copy the token
+4. Fill in:
+   - **Name:** `ttdev-local`
+   - **Environment:** `dev`
+   - **Permissions:** `Read` (we only need to read secrets)
+5. Click **"Create"**
+6. **Copy the token immediately** - you won't see it again!
 
-## 5. Update Configuration
+## 5. Get Project ID
 
-### Update `infisical.config.json`:
+1. Still in **Settings**, look at the top
+2. **Project ID** is shown (it's a UUID like `abc12345-...`)
+3. Copy it
 
-```json
-{
-  "workspaceId": "your-workspace-id",
-  "projectId": "your-project-id",
-  "environment": "dev",
-  "token": "your-service-token-here"
-}
-```
+## 6. Configure Local Development
 
-**Or use environment variables:**
+### Option A: Using `.env` file (Recommended for local dev)
+
+Create a `.env` file in your project root:
 
 ```env
-INFISICAL_TOKEN=your-service-token-here
-INFISICAL_PROJECT_ID=your-project-id
+INFISICAL_TOKEN=your-service-token-from-step-4
+INFISICAL_PROJECT_ID=your-project-id-from-step-5
 INFISICAL_ENVIRONMENT=dev
 ```
 
-## 6. Install Infisical CLI (Optional - for Local Development)
-
+Then run:
 ```bash
-# Install globally
-npm install -g @infisical/cli
-
-# Login
-infisical login
-
-# Run your app with Infisical
-infisical run -- pnpm dev
-```
-
-## 7. Update package.json Scripts
-
-Add these scripts to `package.json`:
-
-```json
-{
-  "scripts": {
-    "dev": "infisical run -- next dev",
-    "build": "infisical run -- next build",
-    "start": "infisical run -- next start"
-  }
-}
-```
-
-## 8. Run Your App
-
-```bash
-# With CLI
-infisical run -- pnpm dev
-
-# Or with token in .env
 pnpm dev
 ```
 
+### Option B: Using Infisical CLI
+
+```bash
+# Login to Infisical
+infisical login
+
+# Link your project (run in project folder)
+infisical link
+
+# Run your app
+infisical run -- pnpm dev
+```
+
+## 7. Verify Setup
+
+After running `pnpm dev`, check the console:
+- If you see **"Ready in Xms"** - ✅ Success!
+- If you see **"Failed to fetch secrets"** - Check your token and project ID
+
 ---
 
-## Your Current Setup
+## Troubleshooting
 
-✅ **Infisical SDK installed**
-✅ **Database client updated to support Infisical**
-⏳ **Need to create Infisical account and project**
-⏳ **Need to add secrets to Infisical**
-⏳ **Need to configure token**
+### "DATABASE_URL not found"
+- Check that `INFISICAL_TOKEN` and `INFISICAL_PROJECT_ID` are set correctly
+- Make sure you added `DATABASE_URL` secret in Infisical dashboard
+- Ensure you're in the `dev` environment
+
+### "Invalid token"
+- Service token might be expired - create a new one
+- Make sure you copied the entire token (no spaces)
+
+### "Project not found"
+- Double-check the Project ID (it's a UUID)
+- Make sure you have access to the project
+
+---
+
+## Quick Reference
+
+| What | Where |
+|------|-------|
+| Infisical Dashboard | https://app.infisical.com |
+| Service Tokens | Project Settings → Service Tokens |
+| Project ID | Project Settings (top of page) |
+| Add Secrets | Project Dashboard → + Add Secret |
 
 ---
 
 ## Need Help?
 
-- Infisical Docs: https://infisical.com/docs
-- Infisical Dashboard: https://app.infisical.com
+- 📚 Docs: https://infisical.com/docs
+- 💬 Discord: https://discord.gg/infisical
+- 📧 Support: support@infisical.com
