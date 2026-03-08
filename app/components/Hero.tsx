@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-pink-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-rose-100 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
-      <div className="relative max-w-[80%] mx-auto grid lg:grid-cols-2 gap-24 lg:gap-32 items-center">
+      <div className="relative max-w-[85%] mx-auto grid lg:grid-cols-2 gap-24 lg:gap-32 items-center">
         {/* Left — Text */}
         <div>
           <span
