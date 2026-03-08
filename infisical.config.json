@@ -1,0 +1,6 @@
+{
+  "workspaceId": "your-workspace-id",
+  "projectId": "your-project-id",
+  "environment": "dev",
+  "token": "your-infisical-token"
+}
