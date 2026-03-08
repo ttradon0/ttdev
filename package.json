@@ -13,6 +13,10 @@
     "db:push": "drizzle-kit push",
     "secret:generate": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
   },
+  "infisical": {
+    "projectId": "your-project-id",
+    "environment": "dev"
+  },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
     "@supabase/supabase-js": "^2.98.0",
