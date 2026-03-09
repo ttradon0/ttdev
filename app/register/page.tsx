@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import LoginCodeAnimation from "../components/LoginCodeAnimation";
 
 const CHULA_PINK = "#E8006F";
@@ -8,6 +10,10 @@ const CHULA_PINK = "#E8006F";
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -44,6 +50,75 @@ export default function RegisterPage() {
 
   const strengthLabel = ["", "อ่อนมาก", "อ่อน", "ปานกลาง", "แข็งแกร่ง"][strength];
   const strengthColor = ["", "#ef4444", "#f97316", "#eab308", "#22c55e"][strength];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validation
+    if (!form.email || !form.password) {
+      setError("กรุณากรอกอีเมลและรหัสผ่าน");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError("รหัสผ่านไม่ตรงกัน");
+      return;
+    }
+
+    if (!form.agree) {
+      setError("กรุณายอมรับเงื่อนไขการใช้งาน");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fullName = `${form.firstName} ${form.lastName}`.trim();
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          name: fullName || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "การลงทะเบียนล้มเหลว");
+        return;
+      }
+
+      setSuccess(true);
+      
+      // Auto sign in after registration
+      setTimeout(async () => {
+        await signIn("credentials", {
+          email: form.email,
+          password: form.password,
+          redirect: false,
+        });
+        router.push("/");
+        router.refresh();
+      }, 1500);
+    } catch (err) {
+      setError("เกิดข้อผิดพลาดที่ไม่สามารถระบุได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await signIn("google", { callbackUrl: "/" });
+  };
 
   return (
     <div
@@ -89,7 +164,12 @@ export default function RegisterPage() {
 
           {/* Social register */}
           <div className="mb-6">
-            <button className="w-full flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium py-3 rounded-xl text-sm transition-all">
+            <button 
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium py-3 rounded-xl text-sm transition-all disabled:opacity-50"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -106,7 +186,18 @@ export default function RegisterPage() {
             <div className="flex-1 h-px bg-slate-100" />
           </div>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Error/Success messages */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...
+              </div>
+            )}
             {/* Name row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -253,10 +344,23 @@ export default function RegisterPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full text-white font-semibold py-3.5 rounded-xl text-base active:scale-[0.98] transition-all shadow-lg"
+              disabled={isLoading || success}
+              className="w-full text-white font-semibold py-3.5 rounded-xl text-base active:scale-[0.98] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: CHULA_PINK, boxShadow: `0 8px 24px -6px ${CHULA_PINK}60` }}
             >
-              สมัครสมาชิกฟรี 🎉
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  กำลังลงทะเบียน...
+                </span>
+              ) : success ? (
+                'ลงทะเบียนสำเร็จ ✓'
+              ) : (
+                'สมัครสมาชิกฟรี 🎉'
+              )}
             </button>
           </form>
         </div>
